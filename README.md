@@ -55,32 +55,38 @@ The project is actively evolving, with AI-powered features planned for future re
 
 ## 🏗️ Architecture
 
-CarCare-AI follows a modular architecture inspired by Clean Architecture principles.
+CarCare-AI follows a modular Clean Architecture approach,
+separating presentation, business logic, data management,
+and domain models.
 
-```text
-CarCare-AI/
-│
-├── app/
-│   ├── presentation/
-│   ├── navigation/
-│   ├── notification/
-│   ├── worker/
-│   └── di/
-│
-├── domain/
-│   ├── repository/
-│   └── usecase/
-│
-├── data/
-│   ├── local/
-│   ├── mapper/
-│   └── repository/
-│
-└── model/
-    ├── Vehicle
-    ├── Maintenance
-    └── MaintenanceSchedule
+```mermaid
+flowchart TD
+    A["App Module<br/>Jetpack Compose, ViewModels, Navigation"]
+    B["Domain Module<br/>Use Cases, Repository Interfaces"]
+    C["Data Module<br/>Room, DAO, Repository Implementations"]
+    D["Model Module<br/>Vehicle, Maintenance, MaintenanceSchedule"]
+
+    A --> B
+    A --> D
+    B --> D
+    C --> B
+    C --> D
+
+    style A fill:#1565C0,color:#fff
+    style B fill:#2E7D32,color:#fff
+    style C fill:#EF6C00,color:#fff
+    style D fill:#6A1B9A,color:#fff
 ```
+
+### Architecture Overview
+
+- App: UI components, navigation, ViewModels and background tasks.
+- Domain: Business logic, use cases and repository contracts.
+- Data: Local persistence with Room, DAOs and repository implementations.
+- Model: Core business entities and maintenance scheduling models.
+
+This modular structure improves maintainability, testability
+and separation of concerns.
 
 ### Architecture Responsibilities
 
