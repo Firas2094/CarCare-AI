@@ -1,4 +1,5 @@
 # 🚗 CarCare-AI
+[![Android CI](https://github.com/Firas2094/CarCare-AI/actions/workflows/android-ci.yml/badge.svg)](https://github.com/Firas2094/CarCare-AI/actions/workflows/android-ci.yml)
 
 ### Modern Android Vehicle Maintenance Application
 
