@@ -97,6 +97,52 @@ and separation of concerns.
 
 This separation promotes testability, maintainability, and scalability.
 
+## 🚀 Project Roadmap
+
+CarCare-AI is an actively developed Android application.
+
+The current development phase focuses on building a robust
+business layer and reliable vehicle maintenance management.
+
+### ✅ Implemented Features
+
+- Vehicle management (create, read, update, delete).
+- Maintenance history and tracking.
+- Maintenance scheduling based on mileage and dates.
+- Local persistence using Room Database.
+- Modular Clean Architecture.
+- Reactive state management with ViewModel.
+- Background maintenance reminders using WorkManager.
+
+### 🔄 Current Development Priorities
+
+- Improving business rules and maintenance calculations.
+- Strengthening application stability and error handling.
+- Expanding unit test coverage.
+- Improving notification reliability.
+
+### 📅 Planned Features
+
+- Complete UI/UX redesign using Jetpack Compose.
+- Material Design 3 interface improvements.
+- AI-powered vehicle maintenance recommendations.
+- Intelligent maintenance predictions.
+- Advanced vehicle maintenance statistics.
+- Improved accessibility and user experience.
+
+### 🎨 UI/UX Development Strategy
+
+The current user interface is a functional first version.
+
+Development currently prioritizes business logic,
+application architecture, and feature reliability.
+
+A complete UI/UX redesign is planned once the core
+business functionalities reach sufficient maturity.
+
+The objective is to deliver an application that combines
+robust engineering with a modern and intuitive user experience.
+
 ## 📱 Screenshots
 
 Application screenshots will be added in an upcoming update.
