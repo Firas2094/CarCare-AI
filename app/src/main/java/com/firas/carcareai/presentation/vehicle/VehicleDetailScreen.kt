@@ -27,6 +27,7 @@ fun VehicleDetailScreen(
     onVehicleDeleted: () -> Unit,
     onEditVehicle: (Long) -> Unit,
     onMaintenancesClick: (Long) -> Unit,
+    onMaintenanceIntervalsClick: (Long) -> Unit
 ) {
     val vehicle by viewModel.selectedVehicle.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -66,6 +67,17 @@ fun VehicleDetailScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Voir les entretiens")
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Button(
+                onClick = {
+                    onMaintenanceIntervalsClick(currentVehicle.id)
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Configurer les intervalles d'entretien")
             }
 
             Spacer(modifier = Modifier.height(24.dp))

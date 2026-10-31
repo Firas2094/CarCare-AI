@@ -20,6 +20,11 @@ import com.firas.carcareai.domain.usecase.vehicle.DeleteVehicleUseCase
 import com.firas.carcareai.domain.usecase.vehicle.GetVehicleByIdUseCase
 import com.firas.carcareai.domain.usecase.vehicle.GetVehiclesUseCase
 import com.firas.carcareai.domain.usecase.vehicle.UpdateVehicleUseCase
+import com.firas.carcareai.data.repository.MaintenanceIntervalRepositoryImpl
+import com.firas.carcareai.domain.repository.MaintenanceIntervalRepository
+import com.firas.carcareai.domain.usecase.maintenance.DeleteMaintenanceIntervalUseCase
+import com.firas.carcareai.domain.usecase.maintenance.GetMaintenanceIntervalsUseCase
+import com.firas.carcareai.domain.usecase.maintenance.SaveMaintenanceIntervalUseCase
 
 private val MIGRATION_1_2 = object : Migration(1, 2) {
 
@@ -51,7 +56,66 @@ private val MIGRATION_1_2 = object : Migration(1, 2) {
     }
 }
 
+/**
+ * Migration de la version 2 vers la version 3.
+ *
+ * Ajoute la table des intervalles personnalisés.
+ *
+ * Chaque véhicule peut définir ses propres
+ * intervalles d'entretien :
+ * - En kilomètres
+ * - En mois
+ * - Ou les deux
+ *
+ * Les véhicules et entretiens existants sont conservés.
+ */
+private val MIGRATION_2_3 = object : Migration(2, 3) {
+
+    override fun migrate(db: SupportSQLiteDatabase) {
+
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS maintenance_intervals (
+                vehicleId INTEGER NOT NULL,
+                type TEXT NOT NULL,
+                intervalKm INTEGER,
+                intervalMonths INTEGER,
+                PRIMARY KEY(vehicleId, type),
+                FOREIGN KEY(vehicleId)
+                    REFERENCES vehicles(id)
+                    ON DELETE CASCADE
+            )
+            """.trimIndent()
+        )
+
+        db.execSQL(
+            """
+            CREATE INDEX IF NOT EXISTS index_maintenance_intervals_vehicleId
+            ON maintenance_intervals(vehicleId)
+            """.trimIndent()
+        )
+    }
+}
+
+/**
+ * Conteneur principal des dépendances de CarCare AI.
+ *
+ * Responsabilités :
+ * - Initialiser la base Room
+ * - Enregistrer les migrations
+ * - Fournir les DAOs
+ * - Construire les repositories
+ * - Fournir les UseCases métier
+ */
+
 class AppContainer(context: Context) {
+
+    /**
+     * Base de données Room.
+     *
+     * Les migrations permettent de mettre à jour
+     * le schéma sans supprimer les données existantes.
+     */
 
     private val database: CarCareDatabase =
         Room.databaseBuilder(
@@ -59,7 +123,10 @@ class AppContainer(context: Context) {
             CarCareDatabase::class.java,
             "carcare_database"
         )
-            .addMigrations(MIGRATION_1_2)
+            .addMigrations(
+                MIGRATION_1_2,
+                MIGRATION_2_3
+            )
             .build()
 
     /**
@@ -69,6 +136,7 @@ class AppContainer(context: Context) {
 
     private val vehicleDao = database.vehicleDao()
     private val maintenanceDao = database.maintenanceDao()
+    private val maintenanceIntervalDao = database.maintenanceIntervalDao()
 
     /**
      *  Repositories
@@ -80,6 +148,9 @@ class AppContainer(context: Context) {
 
     val maintenanceRepository: MaintenanceRepository =
         MaintenanceRepositoryImpl(maintenanceDao)
+
+    val maintenanceIntervalRepository: MaintenanceIntervalRepository =
+        MaintenanceIntervalRepositoryImpl(maintenanceIntervalDao)
 
     /**
      *  Vehicles UseCase
@@ -130,5 +201,21 @@ class AppContainer(context: Context) {
 
     val calculateMaintenanceScheduleUseCase =
         CalculateMaintenanceScheduleUseCase()
+
+
+    /**
+     * Maintenance Intervals UseCases
+     *
+     * Gestion des configurations personnalisées
+     * des intervalles d'entretien.
+     */
+    val getMaintenanceIntervalsUseCase =
+        GetMaintenanceIntervalsUseCase(maintenanceIntervalRepository)
+
+    val saveMaintenanceIntervalUseCase =
+        SaveMaintenanceIntervalUseCase(maintenanceIntervalRepository)
+
+    val deleteMaintenanceIntervalUseCase =
+        DeleteMaintenanceIntervalUseCase(maintenanceIntervalRepository)
 }
 

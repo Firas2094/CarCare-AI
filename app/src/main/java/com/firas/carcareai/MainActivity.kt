@@ -12,6 +12,8 @@ import androidx.lifecycle.ViewModelProvider
 import com.firas.carcareai.di.AppContainer
 import com.firas.carcareai.presentation.maintenance.MaintenanceViewModel
 import com.firas.carcareai.presentation.maintenance.MaintenanceViewModelFactory
+import com.firas.carcareai.presentation.maintenanceinterval.MaintenanceIntervalViewModel
+import com.firas.carcareai.presentation.maintenanceinterval.MaintenanceIntervalViewModelFactory
 import com.firas.carcareai.presentation.navigation.CarCareNavigation
 import com.firas.carcareai.presentation.vehicle.VehicleViewModel
 import com.firas.carcareai.presentation.vehicle.VehicleViewModelFactory
@@ -23,6 +25,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var appContainer: AppContainer
     private lateinit var vehicleViewModel: VehicleViewModel
     private lateinit var maintenanceViewModel: MaintenanceViewModel
+    private lateinit var maintenanceIntervalViewModel: MaintenanceIntervalViewModel
 
     private val notificationVehicleId = mutableStateOf<Long?>(null)
 
@@ -47,8 +50,19 @@ class MainActivity : ComponentActivity() {
             appContainer.updateMaintenanceUseCase,
             appContainer.deleteMaintenanceUseCase,
             appContainer.calculateMaintenanceScheduleUseCase,
-            appContainer.getVehicleByIdUseCase
+            appContainer.getVehicleByIdUseCase,
+            appContainer.getMaintenanceIntervalsUseCase
         )
+
+        val maintenanceIntervalViewModelFactory = MaintenanceIntervalViewModelFactory(
+                getIntervalsUseCase = appContainer.getMaintenanceIntervalsUseCase,
+                saveIntervalUseCase = appContainer.saveMaintenanceIntervalUseCase,
+                deleteIntervalUseCase = appContainer.deleteMaintenanceIntervalUseCase
+            )
+
+
+
+
 
         vehicleViewModel = ViewModelProvider(
             this,
@@ -59,6 +73,13 @@ class MainActivity : ComponentActivity() {
             this,
             maintenanceViewModelFactory
         )[MaintenanceViewModel::class.java]
+
+        maintenanceIntervalViewModel = ViewModelProvider(
+            this,
+            maintenanceIntervalViewModelFactory
+        )[MaintenanceIntervalViewModel::class.java]
+
+
 
         MaintenanceReminderScheduler.schedule(applicationContext)
 
@@ -72,7 +93,8 @@ class MainActivity : ComponentActivity() {
             CarCareNavigation(
                 vehicleViewModel = vehicleViewModel,
                 maintenanceViewModel = maintenanceViewModel,
-                notificationVehicleId = notificationVehicleId.value
+                notificationVehicleId = notificationVehicleId.value,
+                maintenanceIntervalViewModel = maintenanceIntervalViewModel,
             )
         }
     }

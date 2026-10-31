@@ -9,19 +9,28 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
+import com.firas.carcareai.core.model.MaintenanceInterval
 
 class CalculateMaintenanceScheduleUseCase {
 
     operator fun invoke(
         vehicle: Vehicle,
-        maintenances: List<Maintenance>
+        maintenances: List<Maintenance>,
+        customIntervals: List<MaintenanceInterval> = emptyList()
     ): List<MaintenanceSchedule> {
 
         return MaintenanceType.entries.map { type ->
+
+            // Recherche un intervalle personnalisé pour ce véhicule et ce type de maintenance.
+            val customInterval = customIntervals.find {
+                it.vehicleId == vehicle.id && it.type == type
+            }
+
             calculateSchedule(
                 type = type,
                 currentMileage = vehicle.mileage,
-                maintenances = maintenances
+                maintenances = maintenances,
+                customInterval = customInterval
             )
         }
     }
@@ -29,7 +38,8 @@ class CalculateMaintenanceScheduleUseCase {
     private fun calculateSchedule(
         type: MaintenanceType,
         currentMileage: Int,
-        maintenances: List<Maintenance>
+        maintenances: List<Maintenance>,
+        customInterval: MaintenanceInterval?
     ): MaintenanceSchedule {
 
         if (type == MaintenanceType.TECHNICAL_INSPECTION) {
@@ -38,15 +48,15 @@ class CalculateMaintenanceScheduleUseCase {
             )
         }
 
-        val intervalKm = getIntervalKm(type)
-
-        if (intervalKm == null) {
-            return MaintenanceSchedule(
-                type = type,
-                status = MaintenanceStatus.UNKNOWN
-            )
+        val intervalKm = if (customInterval != null) {
+            customInterval.intervalKm
+        } else {
+            getIntervalKm(type)
         }
 
+        val intervalMonths = customInterval?.intervalMonths
+
+        // Sans historique, impossible de calculer une échéance.
         val lastMaintenance = maintenances
             .filter { it.type == type }
             .maxByOrNull { it.mileage }
@@ -58,22 +68,78 @@ class CalculateMaintenanceScheduleUseCase {
             )
         }
 
-        val nextMileage = lastMaintenance.mileage + intervalKm
-        val remainingKm = nextMileage - currentMileage
+        val nextMileage = intervalKm?.let {
+            lastMaintenance.mileage + it
+        }
 
+        val remainingKm = nextMileage?.let {
+            it - currentMileage
+        }
+
+        // Calcul de l'échéance temporelle, si disponible.
+        val nextDate = intervalMonths?.let { months ->
+
+            val lastDate = Instant
+                .ofEpochMilli(lastMaintenance.date)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
+
+            lastDate.plusMonths(months.toLong())
+        }
+
+        val remainingDays = nextDate?.let { date ->
+            ChronoUnit.DAYS.between(
+                LocalDate.now(),
+                date
+            )
+        }
+
+        val nextDateTimestamp = nextDate?.atStartOfDay(ZoneId.systemDefault())?.toInstant()
+            ?.toEpochMilli()
+
+        // Détermination du statut kilométrique.
+        val mileageStatus = remainingKm?.let { km ->
+            when {
+                km < 0 -> MaintenanceStatus.OVERDUE
+                km <= 2_000 -> MaintenanceStatus.SOON
+                else -> MaintenanceStatus.OK
+            }
+        }
+
+        // Détermination du statut temporel.
+        val timeStatus = remainingDays?.let { days ->
+            when {
+                days < 0 -> MaintenanceStatus.OVERDUE
+                days <= 60 -> MaintenanceStatus.SOON
+                else -> MaintenanceStatus.OK
+            }
+        }
+
+        // Le statut global retient l'échéance la plus urgente.
         val status = when {
-            remainingKm < 0 -> MaintenanceStatus.OVERDUE
-            remainingKm <= 2000 -> MaintenanceStatus.SOON
+            mileageStatus == MaintenanceStatus.OVERDUE ||
+                    timeStatus == MaintenanceStatus.OVERDUE ->
+                MaintenanceStatus.OVERDUE
 
-            else -> MaintenanceStatus.OK
+            mileageStatus == MaintenanceStatus.SOON ||
+                    timeStatus == MaintenanceStatus.SOON ->
+                MaintenanceStatus.SOON
+
+            mileageStatus == MaintenanceStatus.OK ||
+                    timeStatus == MaintenanceStatus.OK ->
+                MaintenanceStatus.OK
+
+            else -> MaintenanceStatus.UNKNOWN
         }
 
         return MaintenanceSchedule(
             type = type,
             lastMaintenanceMileage = lastMaintenance.mileage,
+            lastMaintenanceDate = lastMaintenance.date,
             nextMaintenanceMileage = nextMileage,
             remainingKm = remainingKm,
-            lastMaintenanceDate = lastMaintenance.date,
+            nextMaintenanceDate = nextDateTimestamp,
+            remainingDays = remainingDays,
             status = status
         )
     }
