@@ -6,6 +6,7 @@ import com.firas.carcareai.domain.usecase.maintenance.AddMaintenanceUseCase
 import com.firas.carcareai.domain.usecase.maintenance.CalculateMaintenanceScheduleUseCase
 import com.firas.carcareai.domain.usecase.maintenance.DeleteMaintenanceUseCase
 import com.firas.carcareai.domain.usecase.maintenance.GetMaintenanceByIdUseCase
+import com.firas.carcareai.domain.usecase.maintenance.GetMaintenanceIntervalsUseCase
 import com.firas.carcareai.domain.usecase.maintenance.GetMaintenancesByVehicleUseCase
 import com.firas.carcareai.domain.usecase.maintenance.UpdateMaintenanceUseCase
 import com.firas.carcareai.domain.usecase.vehicle.GetVehicleByIdUseCase
@@ -17,7 +18,8 @@ class MaintenanceViewModelFactory(
     private val updateMaintenanceUseCase: UpdateMaintenanceUseCase,
     private val deleteMaintenanceUseCase: DeleteMaintenanceUseCase,
     private val calculateMaintenanceScheduleUseCase: CalculateMaintenanceScheduleUseCase,
-    private val getVehicleByIdUseCase: GetVehicleByIdUseCase
+    private val getVehicleByIdUseCase: GetVehicleByIdUseCase,
+    private val getMaintenanceIntervalsUseCase: GetMaintenanceIntervalsUseCase
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
@@ -33,7 +35,8 @@ class MaintenanceViewModelFactory(
                 updateMaintenanceUseCase,
                 deleteMaintenanceUseCase,
                 calculateMaintenanceScheduleUseCase,
-                getVehicleByIdUseCase
+                getVehicleByIdUseCase,
+                getMaintenanceIntervalsUseCase
             ) as T
         }
 
