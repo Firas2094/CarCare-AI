@@ -37,11 +37,16 @@ class MaintenanceReminderWorker(
                     .getMaintenancesByVehicle(vehicle.id)
                     .first()
 
-                val schedules =
-                    appContainer.calculateMaintenanceScheduleUseCase(
-                        vehicle = vehicle,
-                        maintenances = maintenances
-                    )
+                // Récupère les intervalles personnalisés enregistrés dans Room.
+                val customIntervals = appContainer.getMaintenanceIntervalsUseCase(
+                    vehicle.id
+                ).first()
+
+                val schedules = appContainer.calculateMaintenanceScheduleUseCase(
+                    vehicle = vehicle,
+                    maintenances = maintenances,
+                    customIntervals = customIntervals
+                )
 
                 schedules
                     .filter { schedule ->
@@ -69,40 +74,50 @@ class MaintenanceReminderWorker(
                                 "Entretien à prévoir : $maintenanceName"
                         }
 
+
+                        val remainingKm = schedule.remainingKm
+                        val remainingDays = schedule.remainingDays
                         val message = when {
-                            schedule.remainingKm != null -> {
-                                val km = schedule.remainingKm ?: 0
 
-                                if (km < 0) {
-                                    "Votre ${vehicle.brand} ${vehicle.model} " +
-                                            "a dépassé l'échéance de ${-km} km."
-                                } else {
-                                    "Votre ${vehicle.brand} ${vehicle.model} : " +
-                                            "encore $km km avant l'entretien."
-                                }
+                            // Entretien déjà dépassé en kilomètres.
+                            remainingKm != null && remainingKm < 0 -> {
+                                "Votre ${vehicle.brand} ${vehicle.model} " +
+                                        "a dépassé l'échéance de ${-remainingKm} km."
                             }
 
-                            schedule.remainingDays != null -> {
-                                val days = schedule.remainingDays ?: 0L
-
-                                if (days < 0) {
-                                    "Votre ${vehicle.brand} ${vehicle.model} : " +
-                                            "échéance dépassée de ${-days} jours."
-                                } else {
-                                    "Votre ${vehicle.brand} ${vehicle.model} : " +
-                                            "échéance dans $days jours."
-                                }
+                            // Entretien déjà dépassé en jours.
+                            remainingDays != null && remainingDays < 0 -> {
+                                "Votre ${vehicle.brand} ${vehicle.model} : " +
+                                        "échéance dépassée de ${-remainingDays} jours."
                             }
 
-                            else -> "Un entretien de votre véhicule nécessite votre attention."
+                            // Entretien à prévoir prochainement en kilomètres.
+                            remainingKm != null && remainingKm <= 2000 -> {
+                                "Votre ${vehicle.brand} ${vehicle.model} : " +
+                                        "encore $remainingKm km avant l'entretien."
+                            }
+
+                            // Entretien à prévoir prochainement en jours.
+                            remainingDays != null && remainingDays <= 60 -> {
+                                "Votre ${vehicle.brand} ${vehicle.model} : " +
+                                        "échéance dans $remainingDays jours."
+                            }
+
+                            // Message de secours.
+                            else -> {
+                                "Un entretien de votre ${vehicle.brand} " +
+                                        "${vehicle.model} nécessite votre attention."
+                            }
                         }
 
-                    // Identifiant stable pour un véhicule et un type d'entretien
+                        // Identifiant stable pour un véhicule et un type d'entretien
                         val notificationId =
                             "${vehicle.id}_${schedule.type.name}".hashCode()
 
                         val reminderSignature = buildString {
-                            append(schedule.nextMaintenanceMileage ?: schedule.nextMaintenanceDate ?: "unknown")
+                            append(schedule.nextMaintenanceMileage ?: "no_km")
+                            append("_")
+                            append(schedule.nextMaintenanceDate ?: "no_date")
                             append("_")
                             append(schedule.status.name)
                         }
@@ -130,11 +145,17 @@ class MaintenanceReminderWorker(
                                     reminderSignature = reminderSignature
                                 )
 
-                                Log.d("CarCareWorker", "Nouveau rappel enregistré : ${schedule.type.name}")
+                                Log.d(
+                                    "CarCareWorker",
+                                    "Nouveau rappel enregistré : ${schedule.type.name}"
+                                )
 
                             } else {
 
-                                Log.d("CarCareWorker", "Notification non envoyée : ${schedule.type.name}")
+                                Log.d(
+                                    "CarCareWorker",
+                                    "Notification non envoyée : ${schedule.type.name}"
+                                )
                             }
 
                         } else {
@@ -142,8 +163,6 @@ class MaintenanceReminderWorker(
                             Log.d("CarCareWorker", "Rappel déjà envoyé : ${schedule.type.name}")
                         }
                     }
-
-
             }
 
             Log.d("CarCareWorker", "Vérification terminée")
