@@ -5,26 +5,27 @@ import androidx.room.Room
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.firas.carcareai.data.local.CarCareDatabase
+import com.firas.carcareai.data.local.migration.MIGRATION_3_4
+import com.firas.carcareai.data.repository.MaintenanceIntervalRepositoryImpl
 import com.firas.carcareai.data.repository.MaintenanceRepositoryImpl
 import com.firas.carcareai.data.repository.VehicleRepositoryImpl
+import com.firas.carcareai.domain.repository.MaintenanceIntervalRepository
 import com.firas.carcareai.domain.repository.MaintenanceRepository
 import com.firas.carcareai.domain.repository.VehicleRepository
 import com.firas.carcareai.domain.usecase.maintenance.AddMaintenanceUseCase
 import com.firas.carcareai.domain.usecase.maintenance.CalculateMaintenanceScheduleUseCase
+import com.firas.carcareai.domain.usecase.maintenance.DeleteMaintenanceIntervalUseCase
 import com.firas.carcareai.domain.usecase.maintenance.DeleteMaintenanceUseCase
 import com.firas.carcareai.domain.usecase.maintenance.GetMaintenanceByIdUseCase
+import com.firas.carcareai.domain.usecase.maintenance.GetMaintenanceIntervalsUseCase
 import com.firas.carcareai.domain.usecase.maintenance.GetMaintenancesByVehicleUseCase
+import com.firas.carcareai.domain.usecase.maintenance.SaveMaintenanceIntervalUseCase
 import com.firas.carcareai.domain.usecase.maintenance.UpdateMaintenanceUseCase
 import com.firas.carcareai.domain.usecase.vehicle.AddVehicleUseCase
 import com.firas.carcareai.domain.usecase.vehicle.DeleteVehicleUseCase
 import com.firas.carcareai.domain.usecase.vehicle.GetVehicleByIdUseCase
 import com.firas.carcareai.domain.usecase.vehicle.GetVehiclesUseCase
 import com.firas.carcareai.domain.usecase.vehicle.UpdateVehicleUseCase
-import com.firas.carcareai.data.repository.MaintenanceIntervalRepositoryImpl
-import com.firas.carcareai.domain.repository.MaintenanceIntervalRepository
-import com.firas.carcareai.domain.usecase.maintenance.DeleteMaintenanceIntervalUseCase
-import com.firas.carcareai.domain.usecase.maintenance.GetMaintenanceIntervalsUseCase
-import com.firas.carcareai.domain.usecase.maintenance.SaveMaintenanceIntervalUseCase
 
 private val MIGRATION_1_2 = object : Migration(1, 2) {
 
@@ -125,7 +126,8 @@ class AppContainer(context: Context) {
         )
             .addMigrations(
                 MIGRATION_1_2,
-                MIGRATION_2_3
+                MIGRATION_2_3,
+                MIGRATION_3_4
             )
             .build()
 

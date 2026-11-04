@@ -1,6 +1,5 @@
 package com.firas.carcareai.data.mapper
 
-import android.R.attr.type
 import com.firas.carcareai.core.model.Maintenance
 import com.firas.carcareai.core.model.MaintenanceType
 import com.firas.carcareai.data.local.entity.MaintenanceEntity
@@ -12,7 +11,8 @@ fun MaintenanceEntity.toDomain(): Maintenance {
         type = MaintenanceType.valueOf(type),
         date = date,
         mileage = mileage,
-        cost = cost,
+        costCents = costCents,
+        garageName = garageName,
         notes = notes
     )
 }
@@ -24,7 +24,8 @@ fun Maintenance.toEntity(): MaintenanceEntity {
         type = type.name,
         date = date,
         mileage = mileage,
-        cost = cost,
+        costCents = costCents,
+        garageName = garageName,
         notes = notes
     )
 }

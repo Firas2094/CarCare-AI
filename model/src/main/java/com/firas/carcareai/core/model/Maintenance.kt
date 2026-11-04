@@ -7,7 +7,8 @@ data class Maintenance(
     val type: MaintenanceType,
     val date: Long,
     val mileage: Int,
-    val cost: Double? = null,
+    val costCents: Long? = null,
+    val garageName: String? = null,
     val notes: String? = null
 )
 
