@@ -26,6 +26,7 @@ data class MaintenanceEntity(
     val type: String,
     val date: Long,
     val mileage: Int,
-    val cost: Double? = null,
+    val costCents: Long? = null,
+    val garageName: String? = null,
     val notes: String? = null
 )

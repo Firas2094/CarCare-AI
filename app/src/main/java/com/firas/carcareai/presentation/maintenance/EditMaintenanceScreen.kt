@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
@@ -24,16 +25,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.firas.carcareai.core.model.Maintenance
 import com.firas.carcareai.core.model.MaintenanceType
 import com.firas.carcareai.core.model.toFrenchLabel
 import com.firas.carcareai.utils.formatDate
+import com.firas.carcareai.utils.parseCostToCents
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,10 +60,24 @@ fun EditMaintenanceScreen(
 
     var type by remember(currentMaintenance.id) { mutableStateOf(currentMaintenance.type) }
     var mileage by remember(currentMaintenance.id) { mutableStateOf(currentMaintenance.mileage.toString()) }
-    var cost by remember(currentMaintenance.id) { mutableStateOf(currentMaintenance.cost?.toString() ?: "") }
+    var cost by remember(currentMaintenance.id) {
+        mutableStateOf(currentMaintenance.costCents?.let {
+            java.math.BigDecimal.valueOf(
+                it,
+                2
+            ).toPlainString()
+        } ?: "")
+    }
     var notes by remember(currentMaintenance.id) { mutableStateOf(currentMaintenance.notes ?: "") }
-    var selectedDate by remember(currentMaintenance.id) { mutableStateOf(currentMaintenance.date) }
+    var selectedDate by remember(currentMaintenance.id) { mutableLongStateOf(currentMaintenance.date) }
     var showDatePicker by remember { mutableStateOf(false) }
+    var garageName by remember(currentMaintenance.id) { mutableStateOf(currentMaintenance.garageName ?: "") }
+    val costCents = remember(cost) { parseCostToCents(cost) }
+
+
+    val isCostValid = cost.isBlank() || costCents != null
+    val mileageValue = mileage.toIntOrNull()
+    val isMileageValid = mileageValue != null && mileageValue >= 0
 
 
     Column(
@@ -109,7 +127,15 @@ fun EditMaintenanceScreen(
                 value = mileage,
                 onValueChange = { mileage = it },
                 label = { Text("Kilométrage") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                isError = !isMileageValid,
+                supportingText = {
+                    if (!isMileageValid) {
+                        Text("Saisis un kilométrage valide")
+                    }
+                }
             )
             Spacer(modifier = Modifier.height(6.dp))
 
@@ -117,9 +143,25 @@ fun EditMaintenanceScreen(
                 value = cost,
                 onValueChange = { cost = it },
                 label = { Text("Coût (€)") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                isError = !isCostValid,
+                supportingText = {
+                    if (!isCostValid) {
+                        Text("Saisis un montant valide avec 2 décimales maximum")
+                    }
+                }
             )
             Spacer(modifier = Modifier.height(6.dp))
+
+            OutlinedTextField(
+                value = garageName,
+                onValueChange = { garageName = it },
+                label = { Text("Nom du garage") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
 
             OutlinedTextField(
                 value = notes,
@@ -132,29 +174,24 @@ fun EditMaintenanceScreen(
 
             Button(
                 onClick = {
-                    val mileageValue = mileage.toIntOrNull()
 
-                    if (mileageValue != null) {
-
+                    if (mileageValue != null && mileageValue >= 0 && isCostValid) {
                         val updatedMaintenance = Maintenance(
                             id = currentMaintenance.id,
                             vehicleId = currentMaintenance.vehicleId,
                             type = type,
                             date = selectedDate,
                             mileage = mileageValue,
-                            cost = cost
-                                .replace(",", ".")
-                                .toDoubleOrNull(),
-                            notes = notes.ifBlank { null }
+                            costCents = costCents,
+                            garageName = garageName.trim().ifBlank { null },
+                            notes = notes.trim().ifBlank { null }
                         )
 
-                        viewModel.updateMaintenance(
-                            updatedMaintenance
-                        )
-
+                        viewModel.updateMaintenance(updatedMaintenance)
                         onMaintenanceUpdated()
                     }
                 },
+                enabled = isMileageValid && isCostValid,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Enregistrer les modifications")

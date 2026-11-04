@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
@@ -20,12 +21,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.firas.carcareai.core.model.Maintenance
-import com.firas.carcareai.core.model.toFrenchLabel
-import com.firas.carcareai.utils.formatDate
-import java.util.Locale
-import androidx.compose.foundation.lazy.items
 import com.firas.carcareai.core.model.MaintenanceSchedule
 import com.firas.carcareai.core.model.MaintenanceStatus
+import com.firas.carcareai.core.model.toFrenchLabel
+import com.firas.carcareai.utils.formatCostFromCents
+import com.firas.carcareai.utils.formatDate
 
 @Composable
 fun MaintenanceScreen(
@@ -61,11 +61,9 @@ fun MaintenanceScreen(
             item { Text("Échéances") }
 
             items(
-                items = schedules,
-                key = { schedule -> schedule.type.name }
-            ) { schedule ->
+                items = schedules, key = { schedule -> schedule.type.name }) { schedule ->
 
-                MaintenanceScheduleItem( schedule = schedule )
+                MaintenanceScheduleItem(schedule = schedule)
             }
 
             item {
@@ -74,26 +72,21 @@ fun MaintenanceScreen(
             }
 
             items(
-                items = maintenances,
-                key = { maintenance -> maintenance.id }
-            ) { maintenance ->
+                items = maintenances, key = { maintenance -> maintenance.id }) { maintenance ->
 
                 MaintenanceItem(
-                    maintenance = maintenance,
-                    onClick = {
+                    maintenance = maintenance, onClick = {
                         onMaintenanceClick(
                             maintenance.id
                         )
-                    }
-                )
+                    })
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = { onAddMaintenance(vehicleId) },
-            modifier = Modifier.fillMaxWidth()
+            onClick = { onAddMaintenance(vehicleId) }, modifier = Modifier.fillMaxWidth()
         ) {
             Text("Ajouter un entretien")
         }
@@ -102,12 +95,10 @@ fun MaintenanceScreen(
 
 @Composable
 fun MaintenanceItem(
-    maintenance: Maintenance,
-    onClick: () -> Unit
+    maintenance: Maintenance, onClick: () -> Unit
 ) {
     Card(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth()
+        onClick = onClick, modifier = Modifier.fillMaxWidth()
     ) {
         Column(
             modifier = Modifier
@@ -130,14 +121,8 @@ fun MaintenanceItem(
                     text = "${maintenance.mileage} km"
                 )
 
-                maintenance.cost?.let { cost ->
-                    Text(
-                        text = String.format(
-                            Locale.FRANCE,
-                            "%.2f €",
-                            cost
-                        )
-                    )
+                maintenance.costCents?.let { cents ->
+                    Text(text = formatCostFromCents(cents))
                 }
             }
 
@@ -201,13 +186,16 @@ fun MaintenanceScheduleItem(
 
             schedule.remainingDays?.let { remainingDays ->
                 when {
-                    remainingDays < 0 -> { Text(text = "Dépassée de ${-remainingDays} jours")
+                    remainingDays < 0 -> {
+                        Text(text = "Dépassée de ${-remainingDays} jours")
                     }
 
-                    remainingDays == 0L -> { Text(text = "Échéance aujourd'hui")
+                    remainingDays == 0L -> {
+                        Text(text = "Échéance aujourd'hui")
                     }
 
-                    else -> { Text(text = "Dans $remainingDays jours")
+                    else -> {
+                        Text(text = "Dans $remainingDays jours")
                     }
                 }
             }

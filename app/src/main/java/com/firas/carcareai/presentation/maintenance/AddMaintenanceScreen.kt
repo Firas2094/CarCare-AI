@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
@@ -22,16 +23,19 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.firas.carcareai.core.model.Maintenance
 import com.firas.carcareai.core.model.MaintenanceType
 import com.firas.carcareai.core.model.toFrenchLabel
 import com.firas.carcareai.utils.formatDate
+import com.firas.carcareai.utils.parseCostToCents
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,8 +48,13 @@ fun AddMaintenanceScreen(
     var mileage by remember { mutableStateOf("") }
     var cost by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
-    var selectedDate by remember { mutableStateOf(System.currentTimeMillis()) }
+    var selectedDate by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var showDatePicker by remember { mutableStateOf(false) }
+    var garageName by remember { mutableStateOf("") }
+    val costCents = remember(cost) { parseCostToCents(cost) }
+
+    // Une valeur non vide doit être un montant valide.
+    val isCostValid = cost.isBlank() || costCents != null
 
     Column(
         modifier = Modifier
@@ -88,29 +97,42 @@ fun AddMaintenanceScreen(
         OutlinedTextField(
             value = mileage,
             onValueChange = { mileage = it },
-            label = {
-                Text("Kilométrage")
-            },
-            modifier = Modifier.fillMaxWidth()
+            label = { Text("Kilométrage") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+
         )
 
 
         OutlinedTextField(
             value = cost,
             onValueChange = { cost = it },
-            label = {
-                Text("Coût (€)")
-            },
-            modifier = Modifier.fillMaxWidth()
+            label = { Text("Coût (€)") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            isError = !isCostValid,
+            supportingText = {
+                if (!isCostValid) {
+                    Text("Saisis un montant valide avec 2 décimales maximum")
+                }
+            }
+        )
+
+        OutlinedTextField(
+            value = garageName,
+            onValueChange = { garageName = it },
+            label = { Text("Nom du garage") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
         )
 
 
         OutlinedTextField(
             value = notes,
             onValueChange = { notes = it },
-            label = {
-                Text("Notes")
-            },
+            label = { Text("Notes") },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -119,17 +141,16 @@ fun AddMaintenanceScreen(
         Button(
             onClick = {
                 val mileageValue = mileage.toIntOrNull()
-                if (mileageValue != null) {
 
+                if (mileageValue != null && mileageValue >= 0 && isCostValid) {
                     val maintenance = Maintenance(
                         vehicleId = vehicleId,
                         type = type,
                         date = selectedDate,
                         mileage = mileageValue,
-                        cost = cost
-                            .replace(",", ".")
-                            .toDoubleOrNull(),
-                        notes = notes.ifBlank { null }
+                        costCents = costCents,
+                        garageName = garageName.trim().ifBlank { null },
+                        notes = notes.trim().ifBlank { null }
                     )
 
                     viewModel.addMaintenance(maintenance)
