@@ -7,6 +7,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.firas.carcareai.presentation.dashboard.DashboardScreen
+import com.firas.carcareai.presentation.dashboard.DashboardViewModel
 import com.firas.carcareai.presentation.maintenance.AddMaintenanceScreen
 import com.firas.carcareai.presentation.maintenance.EditMaintenanceScreen
 import com.firas.carcareai.presentation.maintenance.MaintenanceDetailScreen
@@ -15,10 +17,10 @@ import com.firas.carcareai.presentation.maintenance.MaintenanceViewModel
 import com.firas.carcareai.presentation.maintenanceinterval.MaintenanceIntervalScreen
 import com.firas.carcareai.presentation.maintenanceinterval.MaintenanceIntervalViewModel
 import com.firas.carcareai.presentation.vehicle.AddVehicleScreen
+import com.firas.carcareai.presentation.vehicle.EditVehicleScreen
 import com.firas.carcareai.presentation.vehicle.VehicleDetailScreen
 import com.firas.carcareai.presentation.vehicle.VehicleScreen
 import com.firas.carcareai.presentation.vehicle.VehicleViewModel
-import com.firas.carcareai.presentation.vehicle.EditVehicleScreen
 
 @Composable
 fun CarCareNavigation(
@@ -26,6 +28,7 @@ fun CarCareNavigation(
     maintenanceViewModel: MaintenanceViewModel,
     notificationVehicleId: Long? = null,
     maintenanceIntervalViewModel: MaintenanceIntervalViewModel,
+    dashboardViewModel: DashboardViewModel
 ) {
     val navController = rememberNavController()
 
@@ -79,7 +82,8 @@ fun CarCareNavigation(
                 onVehicleDeleted = { navController.popBackStack() },
                 onEditVehicle = { id -> navController.navigate("edit_vehicle/$id") },
                 onMaintenancesClick = { id -> navController.navigate("maintenances/$id") },
-                onMaintenanceIntervalsClick = { id -> navController.navigate("maintenance_intervals/$id") }
+                onMaintenanceIntervalsClick = { id -> navController.navigate("maintenance_intervals/$id") },
+                onStatisticsClick = { id -> navController.navigate("dashboard/$id") }
             )
         }
 
@@ -90,7 +94,7 @@ fun CarCareNavigation(
                     type = NavType.LongType
                 }
             )
-        ){ backStackEntry ->
+        ) { backStackEntry ->
 
             val vehicleId = backStackEntry.arguments
                 ?.getLong("vehicleId")
@@ -173,7 +177,8 @@ fun CarCareNavigation(
                 viewModel = maintenanceViewModel,
                 onEditMaintenance = { id ->
                     navController.navigate(
-                        "edit_maintenance/$id")
+                        "edit_maintenance/$id"
+                    )
                 },
 
                 onMaintenanceDeleted = {
@@ -222,6 +227,29 @@ fun CarCareNavigation(
             MaintenanceIntervalScreen(
                 vehicleId = vehicleId,
                 viewModel = maintenanceIntervalViewModel,
+                onBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+
+        composable(
+            route = "dashboard/{vehicleId}",
+            arguments = listOf(
+                navArgument("vehicleId") {
+                    type = NavType.LongType
+                }
+            )
+        ) { backStackEntry ->
+
+            val vehicleId =
+                backStackEntry.arguments?.getLong("vehicleId")
+                    ?: return@composable
+
+            DashboardScreen(
+                vehicleId = vehicleId,
+                viewModel = dashboardViewModel,
                 onBack = {
                     navController.popBackStack()
                 }
