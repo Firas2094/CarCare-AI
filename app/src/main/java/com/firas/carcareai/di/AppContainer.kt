@@ -18,6 +18,7 @@ import com.firas.carcareai.domain.usecase.maintenance.DeleteMaintenanceIntervalU
 import com.firas.carcareai.domain.usecase.maintenance.DeleteMaintenanceUseCase
 import com.firas.carcareai.domain.usecase.maintenance.GetMaintenanceByIdUseCase
 import com.firas.carcareai.domain.usecase.maintenance.GetMaintenanceIntervalsUseCase
+import com.firas.carcareai.domain.usecase.maintenance.GetMaintenanceStatisticsUseCase
 import com.firas.carcareai.domain.usecase.maintenance.GetMaintenancesByVehicleUseCase
 import com.firas.carcareai.domain.usecase.maintenance.SaveMaintenanceIntervalUseCase
 import com.firas.carcareai.domain.usecase.maintenance.UpdateMaintenanceUseCase
@@ -219,5 +220,13 @@ class AppContainer(context: Context) {
 
     val deleteMaintenanceIntervalUseCase =
         DeleteMaintenanceIntervalUseCase(maintenanceIntervalRepository)
+
+
+    /**
+     * Calcule les statistiques financières des entretiens.
+     * Ne nécessite pas de repository supplémentaire.
+     */
+    val getMaintenanceStatisticsUseCase =
+        GetMaintenanceStatisticsUseCase()
 }
 

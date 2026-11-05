@@ -10,6 +10,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModelProvider
 import com.firas.carcareai.di.AppContainer
+import com.firas.carcareai.presentation.dashboard.DashboardViewModel
+import com.firas.carcareai.presentation.dashboard.DashboardViewModelFactory
 import com.firas.carcareai.presentation.maintenance.MaintenanceViewModel
 import com.firas.carcareai.presentation.maintenance.MaintenanceViewModelFactory
 import com.firas.carcareai.presentation.maintenanceinterval.MaintenanceIntervalViewModel
@@ -26,6 +28,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var vehicleViewModel: VehicleViewModel
     private lateinit var maintenanceViewModel: MaintenanceViewModel
     private lateinit var maintenanceIntervalViewModel: MaintenanceIntervalViewModel
+    private lateinit var dashboardViewModel: DashboardViewModel
 
     private val notificationVehicleId = mutableStateOf<Long?>(null)
 
@@ -55,11 +58,15 @@ class MainActivity : ComponentActivity() {
         )
 
         val maintenanceIntervalViewModelFactory = MaintenanceIntervalViewModelFactory(
-                getIntervalsUseCase = appContainer.getMaintenanceIntervalsUseCase,
-                saveIntervalUseCase = appContainer.saveMaintenanceIntervalUseCase,
-                deleteIntervalUseCase = appContainer.deleteMaintenanceIntervalUseCase
-            )
+            getIntervalsUseCase = appContainer.getMaintenanceIntervalsUseCase,
+            saveIntervalUseCase = appContainer.saveMaintenanceIntervalUseCase,
+            deleteIntervalUseCase = appContainer.deleteMaintenanceIntervalUseCase
+        )
 
+        val dashboardViewModelFactory = DashboardViewModelFactory(
+            getMaintenancesByVehicleUseCase = appContainer.getMaintenancesByVehicleUseCase,
+            getMaintenanceStatisticsUseCase = appContainer.getMaintenanceStatisticsUseCase
+        )
 
 
 
@@ -79,6 +86,11 @@ class MainActivity : ComponentActivity() {
             maintenanceIntervalViewModelFactory
         )[MaintenanceIntervalViewModel::class.java]
 
+        dashboardViewModel = ViewModelProvider(
+            this,
+            dashboardViewModelFactory
+        )[DashboardViewModel::class.java]
+
 
 
         MaintenanceReminderScheduler.schedule(applicationContext)
@@ -95,6 +107,7 @@ class MainActivity : ComponentActivity() {
                 maintenanceViewModel = maintenanceViewModel,
                 notificationVehicleId = notificationVehicleId.value,
                 maintenanceIntervalViewModel = maintenanceIntervalViewModel,
+                dashboardViewModel = dashboardViewModel
             )
         }
     }
