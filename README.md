@@ -29,6 +29,15 @@ The project is actively evolving, with AI-powered features planned for future re
 - Identify maintenance status: OK, SOON, OVERDUE, or UNKNOWN.
 - Support mileage-based and date-based maintenance intervals.
 
+### 📊 Maintenance Statistics Dashboard
+- View maintenance statistics for each vehicle.
+- Track total maintenance expenses and average maintenance costs.
+- Analyze monthly maintenance spending.
+- Visualize expenses grouped by maintenance type.
+- Automatically update statistics when maintenance records change using Kotlin Flow.
+- Exclude maintenance records without a cost from financial calculations.
+- Calculate statistics through a dedicated domain use case.
+
 ### 🔔 Maintenance Reminders
 - Background reminder scheduling using WorkManager.
 - Android notification integration.
@@ -114,6 +123,11 @@ business layer and reliable vehicle maintenance management.
 - Modular Clean Architecture.
 - Reactive state management with ViewModel.
 - Background maintenance reminders using WorkManager.
+- Vehicle maintenance statistics dashboard.
+- Monthly maintenance expense analysis.
+- Expense breakdown by maintenance category.
+- Reactive statistics updates using Kotlin Flow.
+- Unit tests for maintenance statistics business logic.
 
 ### 🔄 Current Development Priorities
 
@@ -182,6 +196,9 @@ Open the project in Android Studio, synchronize Gradle, and run the `app` config
 - [ ] Improved notification experience
 - [ ] Expanded automated test coverage
 - [ ] UI/UX enhancements
+- [ ] Advanced analytics and interactive expense charts.
+- [ ] Maintenance cost trends and year-over-year comparisons.
+- [ ] Vehicle maintenance budget tracking.
 
 ## 🎯 Project Goals
 
