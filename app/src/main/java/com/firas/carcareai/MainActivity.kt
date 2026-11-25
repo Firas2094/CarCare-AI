@@ -17,6 +17,8 @@ import com.firas.carcareai.presentation.maintenance.MaintenanceViewModelFactory
 import com.firas.carcareai.presentation.maintenanceinterval.MaintenanceIntervalViewModel
 import com.firas.carcareai.presentation.maintenanceinterval.MaintenanceIntervalViewModelFactory
 import com.firas.carcareai.presentation.navigation.CarCareNavigation
+import com.firas.carcareai.presentation.reminders.RemindersViewModel
+import com.firas.carcareai.presentation.reminders.RemindersViewModelFactory
 import com.firas.carcareai.presentation.vehicle.VehicleViewModel
 import com.firas.carcareai.presentation.vehicle.VehicleViewModelFactory
 import com.firas.carcareai.worker.MaintenanceReminderScheduler
@@ -29,6 +31,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var maintenanceViewModel: MaintenanceViewModel
     private lateinit var maintenanceIntervalViewModel: MaintenanceIntervalViewModel
     private lateinit var dashboardViewModel: DashboardViewModel
+    private lateinit var remindersViewModel: RemindersViewModel
 
     private val notificationVehicleId = mutableStateOf<Long?>(null)
 
@@ -68,6 +71,10 @@ class MainActivity : ComponentActivity() {
             getMaintenanceStatisticsUseCase = appContainer.getMaintenanceStatisticsUseCase
         )
 
+        val remindersViewModelFactory = RemindersViewModelFactory(
+            getMaintenanceRemindersUseCase = appContainer.getMaintenanceRemindersUseCase
+        )
+
 
 
 
@@ -91,6 +98,11 @@ class MainActivity : ComponentActivity() {
             dashboardViewModelFactory
         )[DashboardViewModel::class.java]
 
+        remindersViewModel = ViewModelProvider(
+            this,
+            remindersViewModelFactory
+        )[RemindersViewModel::class.java]
+
 
 
         MaintenanceReminderScheduler.schedule(applicationContext)
@@ -107,7 +119,8 @@ class MainActivity : ComponentActivity() {
                 maintenanceViewModel = maintenanceViewModel,
                 notificationVehicleId = notificationVehicleId.value,
                 maintenanceIntervalViewModel = maintenanceIntervalViewModel,
-                dashboardViewModel = dashboardViewModel
+                dashboardViewModel = dashboardViewModel,
+                remindersViewModel = remindersViewModel
             )
         }
     }

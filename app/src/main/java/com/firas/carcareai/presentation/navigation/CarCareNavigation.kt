@@ -2,6 +2,8 @@ package com.firas.carcareai.presentation.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -16,6 +18,8 @@ import com.firas.carcareai.presentation.maintenance.MaintenanceScreen
 import com.firas.carcareai.presentation.maintenance.MaintenanceViewModel
 import com.firas.carcareai.presentation.maintenanceinterval.MaintenanceIntervalScreen
 import com.firas.carcareai.presentation.maintenanceinterval.MaintenanceIntervalViewModel
+import com.firas.carcareai.presentation.reminders.RemindersScreen
+import com.firas.carcareai.presentation.reminders.RemindersViewModel
 import com.firas.carcareai.presentation.vehicle.AddVehicleScreen
 import com.firas.carcareai.presentation.vehicle.EditVehicleScreen
 import com.firas.carcareai.presentation.vehicle.VehicleDetailScreen
@@ -28,7 +32,8 @@ fun CarCareNavigation(
     maintenanceViewModel: MaintenanceViewModel,
     notificationVehicleId: Long? = null,
     maintenanceIntervalViewModel: MaintenanceIntervalViewModel,
-    dashboardViewModel: DashboardViewModel
+    dashboardViewModel: DashboardViewModel,
+    remindersViewModel: RemindersViewModel
 ) {
     val navController = rememberNavController()
 
@@ -45,6 +50,8 @@ fun CarCareNavigation(
         startDestination = "vehicles"
     ) {
         composable("vehicles") {
+            val reminders by remindersViewModel.reminders.collectAsState()
+
             VehicleScreen(
                 viewModel = vehicleViewModel,
                 onAddVehicle = {
@@ -52,6 +59,10 @@ fun CarCareNavigation(
                 },
                 onVehicleClick = { vehicleId ->
                     navController.navigate("vehicle_detail/$vehicleId")
+                },
+                remindersCount = reminders.size,
+                onRemindersClick = {
+                    navController.navigate("reminders")
                 }
             )
         }
@@ -250,6 +261,19 @@ fun CarCareNavigation(
             DashboardScreen(
                 vehicleId = vehicleId,
                 viewModel = dashboardViewModel,
+                onBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+
+        composable("reminders") {
+            RemindersScreen(
+                viewModel = remindersViewModel,
+                onReminderClick = { vehicleId ->
+                    navController.navigate("maintenances/$vehicleId")
+                },
                 onBack = {
                     navController.popBackStack()
                 }
