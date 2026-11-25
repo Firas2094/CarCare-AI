@@ -18,6 +18,7 @@ import com.firas.carcareai.domain.usecase.maintenance.DeleteMaintenanceIntervalU
 import com.firas.carcareai.domain.usecase.maintenance.DeleteMaintenanceUseCase
 import com.firas.carcareai.domain.usecase.maintenance.GetMaintenanceByIdUseCase
 import com.firas.carcareai.domain.usecase.maintenance.GetMaintenanceIntervalsUseCase
+import com.firas.carcareai.domain.usecase.maintenance.GetMaintenanceRemindersUseCase
 import com.firas.carcareai.domain.usecase.maintenance.GetMaintenanceStatisticsUseCase
 import com.firas.carcareai.domain.usecase.maintenance.GetMaintenancesByVehicleUseCase
 import com.firas.carcareai.domain.usecase.maintenance.SaveMaintenanceIntervalUseCase
@@ -228,5 +229,20 @@ class AppContainer(context: Context) {
      */
     val getMaintenanceStatisticsUseCase =
         GetMaintenanceStatisticsUseCase()
+
+
+    /**
+     * Maintenance Reminders UseCase
+     *
+     * Observe les échéances d'entretien de tous les véhicules
+     * et centralise les rappels nécessitant une attention.
+     */
+    val getMaintenanceRemindersUseCase =
+        GetMaintenanceRemindersUseCase(
+            vehicleRepository = vehicleRepository,
+            maintenanceRepository = maintenanceRepository,
+            getMaintenanceIntervalsUseCase = getMaintenanceIntervalsUseCase,
+            calculateMaintenanceScheduleUseCase = calculateMaintenanceScheduleUseCase
+        )
 }
 
